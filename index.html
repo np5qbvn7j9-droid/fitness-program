@@ -125,6 +125,10 @@
         .ptable th,.ptable td{padding:6px 8px;text-align:right;border-bottom:1px solid var(--border);font-size:0.78rem}
         .ptable th{color:var(--pr);font-weight:700}
         .ptable td{color:var(--muted)}
+        .update-btn{position:fixed;bottom:calc(20px + var(--safe-b));left:20px;width:48px;height:48px;border-radius:50%;background:var(--pr);color:#fff;border:none;font-size:1.3rem;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 15px rgba(255,107,53,0.4);z-index:999;cursor:pointer;transition:transform 0.3s}
+        .update-btn:active{transform:scale(0.9)}
+        .update-btn.spinning{animation:spin 1s linear infinite}
+        @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
     </style>
 </head>
 <body>
@@ -426,6 +430,24 @@ function goHome(){
 }
 function tog(el){el.classList.toggle('open')}
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+function forceUpdate(){
+    const btn=document.getElementById('upd-btn');
+    btn.classList.add('spinning');
+    if('serviceWorker' in navigator){
+        navigator.serviceWorker.getRegistrations().then(regs=>{
+            Promise.all(regs.map(r=>r.unregister())).then(()=>{
+                caches.keys().then(keys=>Promise.all(keys.map(k=>caches.delete(k)))).then(()=>{
+                    btn.classList.remove('spinning');
+                    location.reload(true);
+                });
+            });
+        });
+    }else{
+        btn.classList.remove('spinning');
+        location.reload(true);
+    }
+}
 </script>
+<button class="update-btn" id="upd-btn" onclick="forceUpdate()">🔄</button>
 </body>
 </html>
